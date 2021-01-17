@@ -5,12 +5,12 @@ import torch
 from PIL import Image
 import os
 
-model = torch.hub.load('pytorch/vision:v0.6.0', 'densenet121', pretrained=False)
+model = torch.hub.load('pytorch/vision:v0.6.0', 'densenet121', pretrained=False)  # model initialization
 import torchvision
 
 weights_path = "D:/проект/server/configs/weights/good"
 
-bot = telebot.TeleBot("1295921807:AAFNPEKXWicvkvzU2HhmcuoSocu93jpmdMk")
+bot = telebot.TeleBot("1295921807:AAFNPEKXWicvkvzU2HhmcuoSocu93jpmdMk")  # bot initializing
 model.classifier = torch.nn.Linear(1024, 2)
 for param in model.parameters():
     param.requires_grad = False
@@ -86,7 +86,7 @@ class Conversation(object):
         bot.send_message(self.user_id, text)
 
 
-@bot.message_handler(commands=["start", "help", "commands"])
+@bot.message_handler(commands=["start", "help", "commands"])  # commands handler
 def get_commands(message):
     if message:
         message_handler = Conversation(message)
@@ -100,7 +100,7 @@ def get_commands(message):
             message_handler.undefined_command()
 
 
-@bot.message_handler(content_types=["photo"])
+@bot.message_handler(content_types=["photo"])  # files handler
 def get_images(message):
     if message:
         message_handler = Conversation(message)
@@ -108,7 +108,7 @@ def get_images(message):
         message_handler.classification()
 
 
-@bot.message_handler(content_types=["text"])
+@bot.message_handler(content_types=["text"])  # processing exclusions
 def get_commands(message):
     if message:
         message_handler = Conversation(message)
@@ -116,4 +116,4 @@ def get_commands(message):
             message_handler.undefined_command()
 
 
-bot.polling(none_stop=True, interval=5)
+bot.polling(none_stop=True, interval=5)  
