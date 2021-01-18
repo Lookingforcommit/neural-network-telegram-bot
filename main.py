@@ -4,20 +4,21 @@ import telebot
 import torch
 from PIL import Image
 import os
+import configs
 
-model = torch.hub.load('pytorch/vision:v0.6.0', 'densenet121', pretrained=False)  # model initialization
+model = torch.hub.load('pytorch/vision:v0.6.0', 'densenet121', pretrained=False)
 import torchvision
 
-weights_path = "D:/проект/server/configs/weights/good"
+weights_path = configs.path_to_weights
 
-bot = telebot.TeleBot("1295921807:AAFNPEKXWicvkvzU2HhmcuoSocu93jpmdMk")  # bot initializing
+bot = telebot.TeleBot(configs.token)
 model.classifier = torch.nn.Linear(1024, 2)
 for param in model.parameters():
     param.requires_grad = False
 model.load_state_dict(torch.load(weights_path, map_location="cpu"))
 
 
-class Conversation(object):
+class MessageHandler(object):
     def __init__(self, message):
         self.message = message
         self.user_id = self.message.chat.id
@@ -53,18 +54,18 @@ class Conversation(object):
         self.message_id = self.message.photo[-1].file_id
         file_info = bot.get_file(self.message_id)
         file_path = file_info.file_path
-        download_link = "https://api.telegram.org/file/bot1295921807:AAFNPEKXWicvkvzU2HhmcuoSocu93jpmdMk/" + file_path
+        download_link = "https://api.telegram.org/file/bot" + configs.token + "/" + file_path
         file = requests.get(download_link)
         file_path_list = list(file_path)
         file_extension = "." + "".join((file_path_list[len(file_path_list) - 3:]))
-        local_file_path = "D:/проект/server/data/" + str(self.message.date) + file_extension
+        local_file_path = configs.work_directory + str(self.message.date) + file_extension
         out = open(local_file_path, "wb")
         out.write(file.content)
         out.close()
         self.file_path = local_file_path
 
     def classification(self):
-        image_batch = Conversation.image_preprocessing(self.file_path)
+        image_batch = MessageHandler.image_preprocessing(self.file_path)
         prediction = model(image_batch)
         os.remove(self.file_path)
         if prediction[0][0].item() >= prediction[0][1].item():
@@ -86,10 +87,10 @@ class Conversation(object):
         bot.send_message(self.user_id, text)
 
 
-@bot.message_handler(commands=["start", "help", "commands"])  # commands handler
+@bot.message_handler(commands=["start", "help", "commands"])
 def get_commands(message):
     if message:
-        message_handler = Conversation(message)
+        message_handler = MessageHandler(message)
         if message.text == "/start":
             message_handler.start()
         elif message.text == "/help":
@@ -100,20 +101,20 @@ def get_commands(message):
             message_handler.undefined_command()
 
 
-@bot.message_handler(content_types=["photo"])  # files handler
+@bot.message_handler(content_types=["photo"])
 def get_images(message):
     if message:
-        message_handler = Conversation(message)
+        message_handler = MessageHandler(message)
         message_handler.file_uploading()
         message_handler.classification()
 
 
-@bot.message_handler(content_types=["text"])  # processing exclusions
+@bot.message_handler(content_types=["text"])
 def get_commands(message):
     if message:
-        message_handler = Conversation(message)
+        message_handler = MessageHandler(message)
         if message.text not in message_handler.available_commands:
             message_handler.undefined_command()
 
 
-bot.polling(none_stop=True, interval=5)  
+bot.polling(none_stop=True, interval=5)
