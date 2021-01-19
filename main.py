@@ -5,6 +5,7 @@ import torch
 from PIL import Image
 import os
 import configs
+import time
 
 model = torch.hub.load('pytorch/vision:v0.6.0', 'densenet121', pretrained=False)
 import torchvision
@@ -87,7 +88,7 @@ class MessageHandler(object):
         bot.send_message(self.user_id, text)
 
 
-@bot.message_handler(commands=["start", "help", "commands"])
+@bot.message_handler(commands=["start", "help", "commands"])  # Commands handler
 def get_commands(message):
     if message:
         message_handler = MessageHandler(message)
@@ -101,7 +102,7 @@ def get_commands(message):
             message_handler.undefined_command()
 
 
-@bot.message_handler(content_types=["photo"])
+@bot.message_handler(content_types=["photo"])  # Image handler
 def get_images(message):
     if message:
         message_handler = MessageHandler(message)
@@ -109,7 +110,7 @@ def get_images(message):
         message_handler.classification()
 
 
-@bot.message_handler(content_types=["text"])
+@bot.message_handler(content_types=["text"])  # Text handler
 def get_commands(message):
     if message:
         message_handler = MessageHandler(message)
@@ -117,4 +118,8 @@ def get_commands(message):
             message_handler.undefined_command()
 
 
-bot.polling(none_stop=True, interval=5)
+try:
+    bot.polling(none_stop=True, interval=5)
+
+except Exception as e:
+    time.sleep(15)
