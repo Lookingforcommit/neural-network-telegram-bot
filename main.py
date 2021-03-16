@@ -12,7 +12,7 @@ import torchvision
 
 weights_path = configs.path_to_weights
 
-bot = telebot.TeleBot(configs.token)
+bot = telebot.TeleBot(configs.token, threaded=False)
 model.classifier = torch.nn.Linear(1024, 2)
 for param in model.parameters():
     param.requires_grad = False
